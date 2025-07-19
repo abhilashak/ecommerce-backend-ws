@@ -1,13 +1,13 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  name: MyString
-  price: 9.99
-  description: MyText
-  stock: 1
+  name: "Gaming Mouse"
+  price: 49.99
+  description: "High-precision gaming mouse with RGB lighting"
+  stock: 100
 
 two:
-  name: MyString
-  price: 9.99
-  description: MyText
-  stock: 1
+  name: "Mechanical Keyboard"
+  price: 79.99
+  description: "Cherry MX switches mechanical keyboard"
+  stock: 50
