@@ -12,8 +12,16 @@ class Product < ApplicationRecord
   def self.search_in_name_and_desc(query)
     return all if query.blank?
 
-    # Search using the tsvector column (maintained by database trigger)
-    where("searchable @@ plainto_tsquery('english', ?)", query)
-      .order("ts_rank(searchable, plainto_tsquery('english', ?)) DESC", query)
+    # Try full-text search first, fall back to ILIKE if searchable column is not populated
+    if connection.column_exists?(:products, :searchable) && 
+       exists?("searchable IS NOT NULL")
+      sanitized_query = connection.quote(query)
+      where("searchable @@ plainto_tsquery('english', ?)", query)
+        .order(Arel.sql("ts_rank(searchable, plainto_tsquery('english', #{sanitized_query})) DESC"))
+    else
+      # Fallback to ILIKE search for name and description
+      where("name ILIKE ? OR description ILIKE ?", "%#{query}%", "%#{query}%")
+        .order(:name)
+    end
   end
 end

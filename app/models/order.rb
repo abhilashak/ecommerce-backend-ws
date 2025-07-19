@@ -4,7 +4,7 @@ class Order < ApplicationRecord
   has_many :products, through: :order_items
 
   # Define status enum
-  enum status: {
+  enum :status, {
     pending: "pending",
     processing: "processing",
     shipped: "shipped",
