@@ -5,7 +5,7 @@ module ProductFilterable
 
   def apply_search(products, search_query)
     return products unless search_query.present?
-    
+
     products.search_in_name_and_desc(search_query)
   end
 
@@ -71,19 +71,19 @@ module ProductFilterable
     # Get base products and apply filters without pagination to get correct count
     base_products = Product.all
     base_products = apply_search(base_products, params[:search])
-    
+
     filter_params = params.slice(:in_stock, :min_price, :max_price)
     base_products = apply_filters(base_products, filter_params)
     base_products = apply_sorting(base_products, params[:sort_by])
-    
+
     # Get the filtered count before pagination
     filtered_count = base_products.count
-    
+
     # Apply pagination
     paginated_products = apply_pagination(base_products, limit: params[:limit], offset: params[:offset])
-    
+
     {
-      products: paginated_products.as_json(include: [:order_items]),
+      products: paginated_products.as_json(include: [ :order_items ]),
       total_count: Product.count,
       filtered_count: filtered_count
     }
