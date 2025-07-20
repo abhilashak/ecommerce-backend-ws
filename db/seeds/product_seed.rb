@@ -133,6 +133,9 @@ class ProductSeed
       print "."
     end
     
+    # Insert any remaining products in the final batch
+    Product.insert_all(product_data) if product_data.any?
+    
     puts "\n✅ Successfully created #{Product.count} products!"
     puts "📊 Stock distribution:"
     puts "   Out of stock: #{Product.where(stock: 0).count}"

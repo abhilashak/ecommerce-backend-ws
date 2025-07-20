@@ -28,6 +28,10 @@ class UserSeed
     
     domains = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "icloud.com", "aol.com"]
     
+    # Pre-compute expensive operations (MAJOR PERFORMANCE BOOST)
+    password_hash = BCrypt::Password.create("password123")  # Compute once, reuse 10,000 times!
+    current_time = Time.current
+    
     # Prepare batch data for efficient bulk insert
     user_data = []
     count.times do |i|
@@ -39,9 +43,9 @@ class UserSeed
         first_name: first_name,
         last_name: last_name,
         email: email,
-        password_digest: BCrypt::Password.create("password123"),
-        created_at: Time.current,
-        updated_at: Time.current
+        password_digest: password_hash,  # Reuse pre-computed hash
+        created_at: current_time,
+        updated_at: current_time
       }
       
       # Insert in batches of 100
@@ -52,6 +56,9 @@ class UserSeed
       
       print "."
     end
+    
+    # Insert any remaining users in the final batch
+    User.insert_all(user_data) if user_data.any?
     
     puts "\n✅ Successfully created #{User.count} users!"
     puts "📧 Sample users:"
