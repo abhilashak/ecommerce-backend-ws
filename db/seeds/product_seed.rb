@@ -123,12 +123,15 @@ class ProductSeed
         created_at: current_time,
         updated_at: current_time
       }
+
+      # Insert in batches of 100
+      if product_data.size >= 100
+        Product.insert_all(product_data)
+        product_data = []  # Reset the array
+      end
       
       print "."
     end
-    
-    # Batch insert all products at once (much more efficient)
-    Product.insert_all(product_data)
     
     puts "\n✅ Successfully created #{Product.count} products!"
     puts "📊 Stock distribution:"

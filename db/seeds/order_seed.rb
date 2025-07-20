@@ -78,11 +78,14 @@ class OrderSeed
         updated_at: order_date
       }
 
+      # Insert in batches of 100
+      if order_data.size >= 100
+        Order.insert_all(order_data)
+        order_data = []  # Reset the array
+      end
+
       print "."
     end
-    
-    # Batch insert all orders at once
-    Order.insert_all(order_data)
     
     # Get the created order IDs to link with order items
     created_orders = Order.order(:id).last(count)

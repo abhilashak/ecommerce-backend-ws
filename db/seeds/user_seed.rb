@@ -30,8 +30,6 @@ class UserSeed
     
     # Prepare batch data for efficient bulk insert
     user_data = []
-    current_time = Time.current
-    
     count.times do |i|
       first_name = first_names.sample
       last_name = last_names.sample
@@ -42,15 +40,18 @@ class UserSeed
         last_name: last_name,
         email: email,
         password_digest: BCrypt::Password.create("password123"),
-        created_at: current_time,
-        updated_at: current_time
+        created_at: Time.current,
+        updated_at: Time.current
       }
+      
+      # Insert in batches of 100
+      if user_data.size >= 100
+        User.insert_all(user_data)
+        user_data = []  # Reset the array
+      end
       
       print "."
     end
-    
-    # Batch insert all users at once (much more efficient)
-    User.insert_all(user_data)
     
     puts "\n✅ Successfully created #{User.count} users!"
     puts "📧 Sample users:"

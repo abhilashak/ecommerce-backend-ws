@@ -11,10 +11,9 @@ class SeedData
   
   # ===== CENTRALIZED CONFIGURATION =====
   # Main record counts - adjust these to scale your seed data
-  RECORD_COUNT = 100          # Base count for most entities
-  USER_COUNT = 100            # Number of users to create
-  PRODUCT_COUNT = 100         # Number of products to create
-  ORDER_COUNT = 100           # Number of orders to create
+  USER_COUNT = 10000            # Number of users to create
+  PRODUCT_COUNT = 10000         # Number of products to create
+  ORDER_COUNT = 100000          # Number of orders to create
   
   # Derived counts (calculated from base counts)
   MIN_ORDER_ITEMS_PER_ORDER = 1
