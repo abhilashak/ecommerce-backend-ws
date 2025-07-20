@@ -45,80 +45,90 @@ class ProductSeed
       ]
     }
 
-    # Generate products
-    product_count = 0
-    
-    while product_count < count
-      product_categories.each do |category, items|
-        break if product_count >= count
-        
-        items.each do |item_template|
-          break if product_count >= count
-          
-          # Generate variations of each item
-          variations = ["", "Pro", "Premium", "Deluxe", "Essential", "Classic", "Advanced", "Compact", "Wireless", "Smart"]
-          colors = ["Black", "White", "Blue", "Red", "Gray", "Silver", "Gold", "Green"]
-          sizes = ["Small", "Medium", "Large", "XL", "Mini", "Standard"]
-          
-          variation = variations.sample
-          color = colors.sample
-          size = sizes.sample
-          
-          # Create product name with variation
-          product_name = variation.empty? ? item_template[:name] : "#{variation} #{item_template[:name]}"
-          
-          # Add color/size for some products
-          if ["Clothing", "Electronics"].include?(category) && rand < 0.3
-            if category == "Clothing"
-              product_name += " - #{color} #{size}"
-            else
-              product_name += " - #{color}"
-            end
-          end
-          
-          # Generate price within range
-          min_price, max_price = item_template[:price_range]
-          price = rand(min_price..max_price).round(2)
-          
-          # Generate stock (some out of stock, some low stock, some high stock)
-          stock_probability = rand
-          stock = if stock_probability < 0.05  # 5% out of stock
-            0
-          elsif stock_probability < 0.15  # 10% low stock
-            rand(1..5)
-          elsif stock_probability < 0.35  # 20% medium stock
-            rand(6..20)
-          else  # 65% good stock
-            rand(21..100)
-          end
-          
-          # Select random description with variation
-          description = item_template[:descriptions].sample
-          description_variations = [
-            "#{description} Perfect for daily use.",
-            "#{description} High quality and durable.",
-            "#{description} Great value for money.",
-            "#{description} Customer favorite!",
-            "#{description} Limited time offer.",
-            description
-          ]
-          
-          final_description = description_variations.sample
-          
-          Product.create!(
-            name: product_name,
-            price: price,
-            description: final_description,
-            stock: stock
-          )
-          
-          product_count += 1
-          print "."
-          
-          break if product_count >= count
-        end
+    # Flatten all product templates for easy random selection
+    all_product_templates = []
+    product_categories.each do |category, items|
+      items.each do |item_template|
+        all_product_templates << { category: category, template: item_template }
       end
     end
+    
+    # Prepare batch data for efficient bulk insert
+    product_data = []
+    current_time = Time.current
+    
+    # Generate products using simple count.times loop
+    count.times do |i|
+      # Randomly select a product template
+      selected = all_product_templates.sample
+      category = selected[:category]
+      item_template = selected[:template]
+      
+      # Generate variations of each item
+      variations = ["", "Pro", "Premium", "Deluxe", "Essential", "Classic", "Advanced", "Compact", "Wireless", "Smart"]
+      colors = ["Black", "White", "Blue", "Red", "Gray", "Silver", "Gold", "Green"]
+      sizes = ["Small", "Medium", "Large", "XL", "Mini", "Standard"]
+      
+      variation = variations.sample
+      color = colors.sample
+      size = sizes.sample
+      
+      # Create product name with variation
+      product_name = variation.empty? ? item_template[:name] : "#{variation} #{item_template[:name]}"
+      
+      # Add color/size for some products
+      if ["Clothing", "Electronics"].include?(category) && rand < 0.3
+        if category == "Clothing"
+          product_name += " - #{color} #{size}"
+        else
+          product_name += " - #{color}"
+        end
+      end
+      
+      # Generate price within range
+      min_price, max_price = item_template[:price_range]
+      price = rand(min_price..max_price).round(2)
+      
+      # Generate stock (some out of stock, some low stock, some high stock)
+      stock_probability = rand
+      stock = if stock_probability < 0.05  # 5% out of stock
+        0
+      elsif stock_probability < 0.15  # 10% low stock
+        rand(1..5)
+      elsif stock_probability < 0.35  # 20% medium stock
+        rand(6..20)
+      else  # 65% good stock
+        rand(21..100)
+      end
+      
+      # Select random description with variation
+      description = item_template[:descriptions].sample
+      description_variations = [
+        "#{description} Perfect for daily use.",
+        "#{description} High quality and durable.",
+        "#{description} Great value for money.",
+        "#{description} Customer favorite!",
+        "#{description} Limited time offer.",
+        description
+      ]
+      
+      final_description = description_variations.sample
+      
+      # Add to batch data instead of creating immediately
+      product_data << {
+        name: product_name,
+        price: price,
+        description: final_description,
+        stock: stock,
+        created_at: current_time,
+        updated_at: current_time
+      }
+      
+      print "."
+    end
+    
+    # Batch insert all products at once (much more efficient)
+    Product.insert_all(product_data)
     
     puts "\n✅ Successfully created #{Product.count} products!"
     puts "📊 Stock distribution:"

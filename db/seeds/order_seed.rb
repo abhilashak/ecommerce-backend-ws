@@ -18,23 +18,19 @@ class OrderSeed
     # Create weighted array: 10% pending, 20% processing, 30% shipped, 35% delivered, 5% cancelled
     weighted_statuses = ["pending"] * 10 + ["processing"] * 20 + ["shipped"] * 30 + ["delivered"] * 35 + ["cancelled"] * 5
 
+    # Prepare batch data for efficient bulk insert
+    order_data = []
+    order_item_data = []
+    
     count.times do |i|
       # Select random user (memory efficient)
-      user = User.offset(rand(user_count)).first
+      user_id = User.offset(rand(user_count)).pluck(:id).first
 
       # Select random status from weighted array
       status = weighted_statuses.sample
 
       # Create order with random date in the last 6 months
       order_date = rand(6.months.ago..Time.current)
-
-      order = Order.create!(
-        user: user,
-        status: status,
-        total_price: 0.0,  # Will be calculated after adding items
-        created_at: order_date,
-        updated_at: order_date
-      )
 
       # Add configurable range of unique random products to the order
       num_items = rand(min_items_per_order..max_items_per_order)
@@ -53,28 +49,52 @@ class OrderSeed
         end
       end
       
-      # Process each selected product
+      # Calculate order total and prepare order items data
       selected_product_ids.each do |product_id|
-        product = Product.find(product_id)
+        product_price = Product.where(id: product_id).pluck(:price).first
         quantity = rand(1..3)
-        unit_price = product.price
+        unit_price = product_price
         item_total = unit_price * quantity
         
-        OrderItem.create!(
-          order: order,
-          product: product,
+        # Add to order items batch data (we'll set order_id after orders are created)
+        order_item_data << {
+          order_index: i,  # Temporary reference to match with order
+          product_id: product_id,
           quantity: quantity,
-          unit_price: unit_price
-        )
+          unit_price: unit_price,
+          created_at: order_date,
+          updated_at: order_date
+        }
         
         order_total += item_total
       end
 
-      # Update order total
-      order.update!(total_price: order_total)
+      # Add to orders batch data
+      order_data << {
+        user_id: user_id,
+        status: status,
+        total_price: order_total,
+        created_at: order_date,
+        updated_at: order_date
+      }
 
       print "."
     end
+    
+    # Batch insert all orders at once
+    Order.insert_all(order_data)
+    
+    # Get the created order IDs to link with order items
+    created_orders = Order.order(:id).last(count)
+    
+    # Update order_item_data with actual order_ids
+    order_item_data.each do |item|
+      order_index = item.delete(:order_index)
+      item[:order_id] = created_orders[order_index].id
+    end
+    
+    # Batch insert all order items at once
+    OrderItem.insert_all(order_item_data)
 
     puts "\n✅ Successfully created #{Order.count} orders!"
     puts "📦 Order status distribution:"
