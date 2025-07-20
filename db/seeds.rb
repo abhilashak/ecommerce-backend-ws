@@ -8,11 +8,39 @@ require_relative 'seeds/clear_seed'
 
 class SeedData
   include ClearSeed
-  # Configuration
-  RECORD_COUNT = 100
+  
+  # ===== CENTRALIZED CONFIGURATION =====
+  # Main record counts - adjust these to scale your seed data
+  RECORD_COUNT = 100          # Base count for most entities
+  USER_COUNT = 100            # Number of users to create
+  PRODUCT_COUNT = 100         # Number of products to create
+  ORDER_COUNT = 100           # Number of orders to create
+  
+  # Derived counts (calculated from base counts)
+  MIN_ORDER_ITEMS_PER_ORDER = 1
+  MAX_ORDER_ITEMS_PER_ORDER = 5
+  EXPECTED_ORDER_ITEMS = ORDER_COUNT * ((MIN_ORDER_ITEMS_PER_ORDER + MAX_ORDER_ITEMS_PER_ORDER) / 2.0)
+  
+  # ===== SEED CONFIGURATION OBJECT =====
+  def seed_config
+    {
+      user_count: USER_COUNT,
+      product_count: PRODUCT_COUNT,
+      order_count: ORDER_COUNT,
+      min_order_items_per_order: MIN_ORDER_ITEMS_PER_ORDER,
+      max_order_items_per_order: MAX_ORDER_ITEMS_PER_ORDER,
+      expected_order_items: EXPECTED_ORDER_ITEMS.to_i
+    }
+  end
 
   def call
-    puts "🌱 Starting database seeding with #{RECORD_COUNT} records each..."
+    config = seed_config
+    puts "🌱 Starting database seeding with centralized configuration..."
+    puts "📊 Seed Configuration:"
+    puts "   👥 Users: #{config[:user_count]}"
+    puts "   📦 Products: #{config[:product_count]}"
+    puts "   🛒 Orders: #{config[:order_count]}"
+    puts "   📋 Expected Order Items: ~#{config[:expected_order_items]}"
     puts "=" * 60
 
     # clear the existing data
@@ -20,15 +48,15 @@ class SeedData
 
     # Create seed data in order (users first, then products, then orders)
     # 1. Create Users
-    UserSeed.create_users(RECORD_COUNT)
+    UserSeed.create_users(config[:user_count])
     puts "=" * 60
 
     # 2. Create Products
-    ProductSeed.create_products(RECORD_COUNT)
+    ProductSeed.create_products(config[:product_count])
     puts "=" * 60
 
     # 3. Create Orders and Order Items
-    OrderSeed.create_orders(RECORD_COUNT)
+    OrderSeed.create_orders(config[:order_count], config[:min_order_items_per_order], config[:max_order_items_per_order])
     puts "=" * 60
   end
 

@@ -1,6 +1,6 @@
 # Product seed data
 class ProductSeed
-  def self.create_products(count = RECORD_COUNT)
+  def self.create_products(count)
     puts "Creating #{count} sample products..."
     
     # Product categories and their typical items

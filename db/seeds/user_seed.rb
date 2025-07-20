@@ -1,6 +1,6 @@
 # User seed data
 class UserSeed
-  def self.create_users(count = RECORD_COUNT)
+  def self.create_users(count)
     puts "Creating #{count} sample users..."
     
     # Sample user data
