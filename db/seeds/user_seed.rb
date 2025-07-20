@@ -1,4 +1,6 @@
 # User seed data
+require 'bcrypt'
+
 class UserSeed
   def self.create_users(count)
     puts "Creating #{count} sample users..."
@@ -26,21 +28,29 @@ class UserSeed
     
     domains = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "icloud.com", "aol.com"]
     
+    # Prepare batch data for efficient bulk insert
+    user_data = []
+    current_time = Time.current
+    
     count.times do |i|
       first_name = first_names.sample
       last_name = last_names.sample
       email = "#{first_name.downcase}.#{last_name.downcase}#{rand(100..999)}@#{domains.sample}"
       
-      User.create!(
+      user_data << {
         first_name: first_name,
         last_name: last_name,
         email: email,
-        password: "password123",
-        password_confirmation: "password123"
-      )
+        password_digest: BCrypt::Password.create("password123"),
+        created_at: current_time,
+        updated_at: current_time
+      }
       
       print "."
     end
+    
+    # Batch insert all users at once (much more efficient)
+    User.insert_all(user_data)
     
     puts "\n✅ Successfully created #{User.count} users!"
     puts "📧 Sample users:"
