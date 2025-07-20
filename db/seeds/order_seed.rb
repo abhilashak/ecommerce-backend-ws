@@ -82,9 +82,10 @@ class OrderSeed
       if order_data.size >= 100
         Order.insert_all(order_data)
         order_data = []  # Reset the array
+        
+        print "."
       end
 
-      print "."
     end
     
     # Insert any remaining orders in the final batch

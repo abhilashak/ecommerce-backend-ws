@@ -128,9 +128,9 @@ class ProductSeed
       if product_data.size >= 100
         Product.insert_all(product_data)
         product_data = []  # Reset the array
+
+        print "."
       end
-      
-      print "."
     end
     
     # Insert any remaining products in the final batch

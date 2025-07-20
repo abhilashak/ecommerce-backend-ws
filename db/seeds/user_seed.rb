@@ -52,9 +52,10 @@ class UserSeed
       if user_data.size >= 100
         User.insert_all(user_data)
         user_data = []  # Reset the array
+        
+        print "."
       end
       
-      print "."
     end
     
     # Insert any remaining users in the final batch
