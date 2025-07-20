@@ -68,8 +68,8 @@ module ProductFilterable
   end
 
   def get_filtered_products_with_metadata(params = {})
-    # Get base products and apply filters without pagination to get correct count
-    base_products = Product.all
+    # Get base products with eager loading to prevent N+1 queries
+    base_products = Product.includes(:order_items)
     base_products = apply_search(base_products, params[:search])
 
     filter_params = params.slice(:in_stock, :min_price, :max_price)
