@@ -7,12 +7,12 @@ module Searchable
     # @param fields [Array<Symbol>] fields to search in (default: [:name, :description])
     # @param searchable_column [Symbol] full-text search column name (default: :searchable)
     # @return [ActiveRecord::Relation] matching records ordered by relevance
-    def search_in_fields(query, fields: [:name, :description], searchable_column: :searchable)
+    def search_in_fields(query, fields: [ :name, :description ], searchable_column: :searchable)
       return all if query.blank?
 
       # Try full-text search first if searchable column exists and is populated
-      if connection.column_exists?(table_name, searchable_column) && 
-         exists?("#{searchable_column} IS NOT NULL")
+      if connection.column_exists?(table_name, searchable_column) &&
+         where.not(searchable_column => nil).exists?
         full_text_search(query, searchable_column)
       else
         # Fallback to ILIKE search across specified fields
@@ -24,7 +24,7 @@ module Searchable
     # @param query [String] search term
     # @return [ActiveRecord::Relation] matching records ordered by relevance
     def search_in_name_and_desc(query)
-      search_in_fields(query, fields: [:name, :description])
+      search_in_fields(query, fields: [ :name, :description ])
     end
 
     private
@@ -46,8 +46,8 @@ module Searchable
     def ilike_search(query, fields)
       conditions = fields.map { |field| "#{field} ILIKE ?" }
       values = Array.new(fields.length, "%#{query}%")
-      
-      where(conditions.join(' OR '), *values)
+
+      where(conditions.join(" OR "), *values)
         .order(fields.first)
     end
   end
